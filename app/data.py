@@ -64,5 +64,35 @@ def plot_volume():
 		</html>
 	''', img=img_base64)
 
+@app.route('/plot-volume-split2')
+def plot_volume_split2():
+	file_path = r'C:\Users\avram\OneDrive\Desktop\Bloomtech TRG\TRG Week 40\pfe.us.txt'
+	df = pd.read_csv(file_path, sep=None, engine='python')
+	if 'OpenInt' in df.columns:
+		df = df.drop(columns=['OpenInt'])
+	n = len(df)
+	split2 = df.iloc[n//3:2*n//3]
+	# Plot the Volume column for split2
+	plt.figure(figsize=(10, 4))
+	plt.plot(split2['Volume'])
+	plt.title('Volume over Time (split2)')
+	plt.xlabel('Index')
+	plt.ylabel('Volume')
+	plt.tight_layout()
+	buf = io.BytesIO()
+	plt.savefig(buf, format='png')
+	plt.close()
+	buf.seek(0)
+	img_base64 = base64.b64encode(buf.read()).decode('utf-8')
+	return render_template_string('''
+		<html>
+		<head><title>Volume Plot Split2</title></head>
+		<body>
+			<h1>Volume over Time (split2)</h1>
+			<img src="data:image/png;base64,{{ img }}"/>
+		</body>
+		</html>
+	''', img=img_base64)
+
 if __name__ == '__main__':
 	app.run(debug=True)
