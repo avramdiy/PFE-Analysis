@@ -1,5 +1,8 @@
 from flask import Flask, render_template_string
 import pandas as pd
+import matplotlib.pyplot as plt
+import io
+import base64
 
 app = Flask(__name__)
 
@@ -28,6 +31,38 @@ def show_dataframe():
 		</body>
 		</html>
 	''', table=split1.to_html(index=False))
+
+@app.route('/plot-volume')
+def plot_volume():
+	file_path = r'C:\Users\avram\OneDrive\Desktop\Bloomtech TRG\TRG Week 40\pfe.us.txt'
+	df = pd.read_csv(file_path, sep=None, engine='python')
+	if 'OpenInt' in df.columns:
+		df = df.drop(columns=['OpenInt'])
+	n = len(df)
+	split1 = df.iloc[:n//3]
+	# Plot the Volume column
+	plt.figure(figsize=(10, 4))
+	plt.plot(split1['Volume'])
+	plt.title('Volume over Time (split1)')
+	plt.xlabel('Index')
+	plt.ylabel('Volume')
+	plt.tight_layout()
+	# Save plot to a bytes buffer
+	buf = io.BytesIO()
+	plt.savefig(buf, format='png')
+	plt.close()
+	buf.seek(0)
+	img_base64 = base64.b64encode(buf.read()).decode('utf-8')
+	# Render as HTML with embedded image
+	return render_template_string('''
+		<html>
+		<head><title>Volume Plot</title></head>
+		<body>
+			<h1>Volume over Time (split1)</h1>
+			<img src="data:image/png;base64,{{ img }}"/>
+		</body>
+		</html>
+	''', img=img_base64)
 
 if __name__ == '__main__':
 	app.run(debug=True)
